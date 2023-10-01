@@ -3,14 +3,12 @@ from __future__ import annotations
 from typing import Iterable
 import gradio as gr
 
-# Import the necessary classes from the gradio themes module
+pleasant_blue = "#007FFF"
+
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 
-# Define the new color as "pleasant_blue"
-pleasant_blue = "#007FFF"
-
-class Kano(Base):  # Change the class name to Kano
+class Kano(Base): 
     def __init__(
         self,
         *,
