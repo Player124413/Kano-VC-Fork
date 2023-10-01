@@ -815,7 +815,7 @@ def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, echl):
     ps = []
     for idx, n_g in enumerate(gpus):
         cmd = (
-            '"%s" lib/infer/modules/train/extract_feature_print.py %s %s %s %s "%s/logs/%s" %s'
+            '"%s" lib/infer/modules/train/extract_feature_print.py %s %s %s %s "%s/logs/%s" %s %s'
             % (
                 config.python_cmd,
                 config.device,
@@ -825,6 +825,7 @@ def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, echl):
                 now_dir,
                 exp_dir,
                 version19,
+                config.is_half,
             )
         )
         logger.info(cmd)
@@ -1540,28 +1541,28 @@ def cli_navigation_loop():
             print(traceback.format_exc())
 
 
-
 if config.is_cli:
     print("\n\nKano-VC-Fork CLI\n")
     cli_navigation_loop()
+
 
 def switch_pitch_controls(f0method0):
     is_visible = f0method0 != "rmvpe"
 
     if rvc_globals.NotesOrHertz:
-        return [
+        return (
             {"visible": False, "__type__": "update"},
             {"visible": is_visible, "__type__": "update"},
             {"visible": False, "__type__": "update"},
             {"visible": is_visible, "__type__": "update"},
-        ]
+        )
     else:
-        return [
+        return (
             {"visible": is_visible, "__type__": "update"},
             {"visible": False, "__type__": "update"},
             {"visible": is_visible, "__type__": "update"},
             {"visible": False, "__type__": "update"},
-        ]
+        )
 
 
 def match_index(sid0: str) -> tuple:
