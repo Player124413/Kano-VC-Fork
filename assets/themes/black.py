@@ -3,17 +3,15 @@ from __future__ import annotations
 from typing import Iterable
 import gradio as gr
 
-pleasant_blue = "blue"
-
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
 
-class Kano(Base): 
+class Kano(Base):
     def __init__(
         self,
         *,
-        primary_hue: colors.Color | str = pleasant_blue,  # Change primary_hue to the new color
-        secondary_hue: colors.Color | str = colors.emerald,
+        primary_hue: colors.Color | str = colors.blue,  # Изменен цвет на синий
+        secondary_hue: colors.Color | str = colors.light_blue,  # Изменен цвет на светло-синий
         neutral_hue: colors.Color | str = colors.neutral,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
@@ -45,19 +43,18 @@ class Kano(Base):
             font=font,
             font_mono=font_mono,
         )
-        self.name = "Kano"  # Change the name to Kano
-        # Update the secondary color values if needed
-        self.secondary_100 = "#dbeafe"
-        self.secondary_200 = "#bfdbfe"
-        self.secondary_300 = "#93c5fd"
-        self.secondary_400 = "#60a5fa"
-        self.secondary_50 = "#eff6ff"
-        self.secondary_500 = "#3b82f6"
-        self.secondary_600 = "#2563eb"
-        self.secondary_700 = "#1d4ed8"
-        self.secondary_800 = "#1e40af"
-        self.secondary_900 = "#1e3a8a"
-        self.secondary_950 = "#1d3660"
+        self.name = "Kano" 
+        self.secondary_100= "#dbeafe",
+        self.secondary_200= "#bfdbfe",
+        self.secondary_300= "#93c5fd",
+        self.secondary_400= "#60a5fa",
+        self.secondary_50= "#eff6ff",
+        self.secondary_500= "#3b82f6",
+        self.secondary_600= "#2563eb",
+        self.secondary_700= "#1d4ed8",
+        self.secondary_800= "#1e40af",
+        self.secondary_900= "#1e3a8a",
+        self.secondary_950= "#1d3660",
 
         super().set(
             # Blaise
@@ -223,7 +220,7 @@ class Kano(Base):
             error_border_width_dark= "1px",
             error_text_color= "#ef4444",
             error_text_color_dark= "#ef4444",
-
+            
             form_gap_width= "0px",
             input_background_fill= "white",
             input_background_fill_dark= "*neutral_900",
@@ -268,6 +265,7 @@ class Kano(Base):
             panel_border_width= "1px",
             panel_border_width_dark= "1px",
 
+            
             prose_header_text_weight= "600",
             prose_text_size= "*text_md",
             prose_text_weight= "400",
@@ -294,7 +292,7 @@ class Kano(Base):
             table_radius= "*radius_lg",
             table_row_focus= "*color_accent_soft",
             table_row_focus_dark= "*color_accent_soft",
-        )
 
+        )
 
 kano = Kano()
