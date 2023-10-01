@@ -1252,10 +1252,10 @@ def cli_infer(com):
             "lib/csvdb/formanting.csv", "w+", "formanting", DoFormant, Quefrency, Timbre
         )
 
-    print("Applio-RVC-Fork Infer-CLI: Starting the inference...")
+    print("Kano-VC-Fork Infer-CLI: Starting the inference...")
     vc_data = vc.get_vc(model_name, protection_amnt, protect1)
     print(vc_data)
-    print("Applio-RVC-Fork Infer-CLI: Performing inference...")
+    print("Kano-VC-Fork Infer-CLI: Performing inference...")
     conversion_data = vc.vc_single(
         speaker_id,
         source_audio_path,
@@ -1273,7 +1273,7 @@ def cli_infer(com):
     )
     if "Success." in conversion_data[0]:
         print(
-            "Applio-RVC-Fork Infer-CLI: Inference succeeded. Writing to %s/%s..."
+            "Kano-VC-Fork Infer-CLI: Inference succeeded. Writing to %s/%s..."
             % ("assets", "audios", "audio-outputs", output_file_name)
         )
         wavfile.write(
@@ -1282,11 +1282,11 @@ def cli_infer(com):
             conversion_data[1][1],
         )
         print(
-            "Applio-RVC-Fork Infer-CLI: Finished! Saved output to %s/%s"
+            "Kano-VC-Fork Infer-CLI: Finished! Saved output to %s/%s"
             % ("assets", "audios", "audio-outputs", output_file_name)
         )
     else:
-        print("Applio-RVC-Fork Infer-CLI: Inference failed. Here's the traceback: ")
+        print("Kano-VC-Fork Infer-CLI: Inference failed. Here's the traceback: ")
         print(conversion_data[0])
 
 
@@ -1297,12 +1297,12 @@ def cli_pre_process(com):
     sample_rate = com[2]
     num_processes = int(com[3])
 
-    print("Applio-RVC-Fork Pre-process: Starting...")
+    print("Kano-VC-Fork Pre-process: Starting...")
     generator = preprocess_dataset(
         trainset_directory, model_name, sample_rate, num_processes
     )
     execute_generator_function(generator)
-    print("Applio-RVC-Fork Pre-process: Finished")
+    print("Kano-VC-Fork Pre-process: Finished")
 
 
 def cli_extract_feature(com):
@@ -1315,9 +1315,9 @@ def cli_extract_feature(com):
     crepe_hop_length = int(com[5])
     version = com[6]  # v1 or v2
 
-    print("Applio-RVC-CLI: Extract Feature Has Pitch: " + str(has_pitch_guidance))
-    print("Applio-RVC-CLI: Extract Feature Version: " + str(version))
-    print("Applio-RVC-Fork Feature Extraction: Starting...")
+    print("Kano-VC-CLI: Extract Feature Has Pitch: " + str(has_pitch_guidance))
+    print("Kano-VC-CLI: Extract Feature Version: " + str(version))
+    print("Kano-VC-Fork Feature Extraction: Starting...")
     generator = extract_f0_feature(
         gpus,
         num_processes,
@@ -1328,7 +1328,7 @@ def cli_extract_feature(com):
         crepe_hop_length,
     )
     execute_generator_function(generator)
-    print("Applio-RVC-Fork Feature Extraction: Finished")
+    print("Kano-VC-Fork Feature Extraction: Finished")
 
 
 def cli_train(com):
@@ -1351,7 +1351,7 @@ def cli_train(com):
     g_pretrained_path = "%sf0G%s.pth" % (pretrained_base, sample_rate)
     d_pretrained_path = "%sf0D%s.pth" % (pretrained_base, sample_rate)
 
-    print("Applio-RVC-Fork Train-CLI: Training...")
+    print("Kano-VC-Fork Train-CLI: Training...")
     click_train(
         model_name,
         sample_rate,
@@ -1374,10 +1374,10 @@ def cli_train_feature(com):
     com = cli_split_command(com)
     model_name = com[0]
     version = com[1]
-    print("Applio-RVC-Fork Train Feature Index-CLI: Training... Please wait")
+    print("Kano-VC-Fork Train Feature Index-CLI: Training... Please wait")
     generator = train_index(model_name, version)
     execute_generator_function(generator)
-    print("Applio-RVC-Fork Train Feature Index-CLI: Done!")
+    print("Kano-VC-Fork Train Feature Index-CLI: Done!")
 
 
 def cli_extract_model(com):
@@ -1392,10 +1392,10 @@ def cli_extract_model(com):
         model_path, save_name, sample_rate, has_pitch_guidance, info, version
     )
     if extract_small_model_process == "Success.":
-        print("Applio-RVC-Fork Extract Small Model: Success!")
+        print("Kano-VC-Fork Extract Small Model: Success!")
     else:
         print(str(extract_small_model_process))
-        print("Applio-RVC-Fork Extract Small Model: Failed!")
+        print("Kano-VC-Fork Extract Small Model: Failed!")
 
 
 def preset_apply(preset, qfer, tmbr):
@@ -1548,7 +1548,7 @@ def cli_navigation_loop():
 
 
 if config.is_cli:
-    print("\n\nApplio-RVC-Fork CLI\n")
+    print("\n\nKano-VC-Fork CLI\n")
     print(
         "Welcome to the CLI version of RVC. Please read the documentation on README.MD to understand how to use this app.\n"
     )
@@ -1705,17 +1705,16 @@ def save_to_wav2(dropbox):
     return target_path
 
 
-from assets.themes.black import Applio
+from assets.themes.black import Kano
 
-# Crear una instancia de Applio
-mi_applio = Applio()
+mi_kano = Kano()
 
 
 def GradioSetup():
     default_weight = names[0] if names else ""
 
-    with gr.Blocks(theme=mi_applio, title="Applio-RVC-Fork") as app:
-        gr.HTML("<h1> 🍏 Applio-RVC-Fork </h1>")
+    with gr.Blocks(theme=mi_kano, title="Kano-VC-Fork") as app:
+        gr.HTML("<h1> 💎 Kano-VC-Fork </h1>")
         with gr.Tabs():
             with gr.TabItem(i18n("Model Inference")):
                 with gr.Row():

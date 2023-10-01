@@ -3,6 +3,10 @@ from __future__ import annotations
 from typing import Iterable
 import gradio as gr
 
+# Import the necessary classes from the gradio themes module
+from gradio.themes.base import Base
+from gradio.themes.utils import colors, fonts, sizes
+
 # Define the new color as "pleasant_blue"
 pleasant_blue = "#007FFF"
 
@@ -221,7 +225,7 @@ class Kano(Base):  # Change the class name to Kano
             error_border_width_dark= "1px",
             error_text_color= "#ef4444",
             error_text_color_dark= "#ef4444",
-            
+
             form_gap_width= "0px",
             input_background_fill= "white",
             input_background_fill_dark= "*neutral_900",
@@ -266,7 +270,6 @@ class Kano(Base):  # Change the class name to Kano
             panel_border_width= "1px",
             panel_border_width_dark= "1px",
 
-            
             prose_header_text_weight= "600",
             prose_text_size= "*text_md",
             prose_text_weight= "400",
@@ -293,9 +296,7 @@ class Kano(Base):  # Change the class name to Kano
             table_radius= "*radius_lg",
             table_row_focus= "*color_accent_soft",
             table_row_focus_dark= "*color_accent_soft",
-
         )
 
 
 kano = Kano()
-
