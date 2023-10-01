@@ -1706,16 +1706,10 @@ def save_to_wav2(dropbox):
     return target_path
 
 
-from assets.themes.black import Kano
-
-# Crear una instancia de Kano
-mi_kano = Kano()
-
-
 def GradioSetup():
     default_weight = names[0] if names else ""
 
-    with gr.Blocks(theme=mi_kano, title="Kano-VC-Fork") as app:
+    with gr.Blocks(theme='NoCrypt/miku', title="Kano-VC-Fork") as app:
         gr.HTML("<h1> 💎 Kano-VC-Fork </h1>")
         with gr.Tabs():
             with gr.TabItem(i18n("Model Inference")):
