@@ -3,15 +3,17 @@ from __future__ import annotations
 from typing import Iterable
 import gradio as gr
 
+#gr.themes.builder()
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
+import time
 
 class Kano(Base):
     def __init__(
         self,
         *,
-        primary_hue: colors.Color | str = colors.blue,  # Изменен цвет на синий
-        secondary_hue: colors.Color | str = colors.light_blue,  # Изменен цвет на светло-синий
+        primary_hue: colors.Color | str = colors.pink,  # Изменил цвет на розовый
+        secondary_hue: colors.Color | str = colors.emerald,
         neutral_hue: colors.Color | str = colors.neutral,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
@@ -43,7 +45,7 @@ class Kano(Base):
             font=font,
             font_mono=font_mono,
         )
-        self.name = "Kano" 
+        self.name= "Kano",  # Изменил название на "Kano"
         self.secondary_100= "#dbeafe",
         self.secondary_200= "#bfdbfe",
         self.secondary_300= "#93c5fd",
