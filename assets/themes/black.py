@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Iterable
 import gradio as gr
 
-pleasant_blue = "#007FFF"
+pleasant_blue = "blue"
 
 from gradio.themes.base import Base
 from gradio.themes.utils import colors, fonts, sizes
