@@ -13,7 +13,7 @@ class Kano(Base):
         self,
         *,
         primary_hue: colors.Color | str = colors.blue,  
-        secondary_hue: colors.Color | str = colors.cyan,
+        secondary_hue: colors.Color | str = colors.cyanic,
         neutral_hue: colors.Color | str = colors.neutral,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
@@ -45,7 +45,7 @@ class Kano(Base):
             font=font,
             font_mono=font_mono,
         )
-        self.name= "Kano",  # Изменил название на "Kano"
+        self.name= "Kano",  
         self.secondary_100= "#dbeafe",
         self.secondary_200= "#bfdbfe",
         self.secondary_300= "#93c5fd",
