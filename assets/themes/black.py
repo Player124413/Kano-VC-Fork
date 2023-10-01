@@ -13,7 +13,7 @@ class Kano(Base):
         self,
         *,
         primary_hue: colors.Color | str = colors.blue,  
-        secondary_hue: colors.Color | str = colors.cyanic,
+        secondary_hue: colors.Color | str = colors.cyan,
         neutral_hue: colors.Color | str = colors.neutral,
         spacing_size: sizes.Size | str = sizes.spacing_md,
         radius_size: sizes.Size | str = sizes.radius_md,
@@ -297,4 +297,4 @@ class Kano(Base):
 
         )
 
-kano = Kano()
+kano = Kano(primary_hue="cyan")
