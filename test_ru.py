@@ -1709,7 +1709,7 @@ def GradioSetup():
                         choices=sorted(names),
                         value=default_weight,
                     )
-                    refresh_button = gr.Button(i18n("Refresh"), variant="primary")
+                    refresh_button = gr.Button(i18n("Обновить"), variant="primary")
                     clean_button = gr.Button(
                         i18n("Выгрузить голос для сохранения памяти GPU"), variant="primary"
                     )
