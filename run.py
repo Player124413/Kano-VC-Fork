@@ -2405,7 +2405,7 @@ def GradioSetup():
                                 label=i18n(
                                     "Provide the GPU index(es) separated by '-', like 0-1-2 for using GPUs 0, 1, and 2:"
                                 ),
-                                value=gpus,
+                                value=0,
                                 interactive=True,
                             )
                             gpu_info9 = gr.Textbox(
@@ -2532,7 +2532,7 @@ def GradioSetup():
                                         label=i18n(
                                             "Provide the GPU index(es) separated by '-', like 0-1-2 for using GPUs 0, 1, and 2:"
                                         ),
-                                        value=gpus,
+                                        value=0,
                                         interactive=True,
                                     )
                             sr2.change(
