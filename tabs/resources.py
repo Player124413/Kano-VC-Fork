@@ -158,6 +158,20 @@ def get_mediafire_download_link(url):
     else:
         return None
 
+import requests
+from urllib.parse import urlencode
+import os
+import gdown
+
+def download_from_yandex_disk(public_key: str, file_path: str):
+    base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
+    final_url = base_url + urlencode(dict(public_key=public_key))
+    response = requests.get(final_url)
+    download_url = response.json()['href']
+    download_response = requests.get(download_url)
+    with open(file_path, 'wb') as f:
+        f.write(download_response.content)
+
 def download_from_url(url):
     file_path = find_folder_parent(now_dir, "assets")
     print(file_path)
@@ -176,20 +190,20 @@ def download_from_url(url):
 
             if file_id:
                 os.chdir(zips_path)
-                result = subprocess.run(
-                    ["gdown", f"https://drive.google.com/uc?id={file_id}", "--fuzzy"],
-                    capture_output=True,
-                    text=True,
-                    encoding="utf-8",
-                )
-                if (
-                    "Too many users have viewed or downloaded this file recently"
-                    in str(result.stderr)
-                ):
-                    return "too much use"
-                if "Cannot retrieve the public link of the file." in str(result.stderr):
-                    return "private link"
-                print(result.stderr)
+                try:
+                    gdown.download(f"https://drive.google.com/uc?id={file_id}", quiet=False, fuzzy=True)
+                except Exception as e:
+                    error_message = str(e)
+                    if "Too many users have viewed or downloaded this file recently" in error_message:
+                        os.chdir(file_path)
+                        return "too much use"
+                    elif "Cannot retrieve the public link of the file." in error_message:
+                        os.chdir(file_path)
+                        return "private link"
+                    else:
+                        print(error_message)
+                        os.chdir(file_path)
+                        return None
 
         elif "/blob/" in url or "/resolve/" in url:
             os.chdir(zips_path)
@@ -197,35 +211,6 @@ def download_from_url(url):
                 url = url.replace("/blob/", "/resolve/")
             
             response = requests.get(url, stream=True)
-            if response.status_code == 200:
-                file_name = url.split("/")[-1]
-                file_name = file_name.replace("%20", "_")
-                total_size_in_bytes = int(response.headers.get('content-length', 0))
-                block_size = 1024  # 1 Kibibyte
-                progress_bar_length = 50
-                progress = 0
-                with open(os.path.join(zips_path, file_name), 'wb') as file:
-                    for data in response.iter_content(block_size):
-                        file.write(data)
-                        progress += len(data)
-                        progress_percent = int((progress / total_size_in_bytes) * 100)
-                        num_dots = int((progress / total_size_in_bytes) * progress_bar_length)
-                        progress_bar = "[" + "." * num_dots + " " * (progress_bar_length - num_dots) + "]"
-                        print(f"{progress_percent}% {progress_bar} {progress}/{total_size_in_bytes}  ", end="\r")
-                        if progress_percent == 100:
-                            print("\n")
-            else:
-                os.chdir(file_path)
-                return None
-        elif "disk.yandex.ru" in url:
-            # Получаем ID файла из URL
-            file_id = url.split("/d/")[1]
-
-            # Создаем URL для скачивания файла
-            download_url = f"https://downloader.disk.yandex.ru/disk/{file_id}"
-
-            # Скачиваем файл
-            response = requests.get(download_url, stream=True)
             if response.status_code == 200:
                 file_name = url.split("/")[-1]
                 file_name = file_name.replace("%20", "_")
@@ -314,41 +299,14 @@ def download_from_url(url):
                 wget.download(download_link)
             else:
                 return None
-        elif "www.weights.gg" in url:
-            #Pls weights creator dont fix this because yes. c:
-            url_parts = url.split("/")
-            weights_gg_index = url_parts.index("www.weights.gg")
-            if weights_gg_index != -1 and weights_gg_index < len(url_parts) - 1:
-                model_part = "/".join(url_parts[weights_gg_index + 1:])
-                if "models" in model_part:
-                    model_part = model_part.split("models/")[-1]
-                    print(model_part)
-                    if model_part:
-                        download_url = f"https://www.weights.gg/es/models/{model_part}"
-                        response = requests.get(download_url)
-                        if response.status_code == 200:
-                            soup = BeautifulSoup(response.text, "html.parser")
-                            button_link = soup.find("a", class_="bg-black text-white px-3 py-2 rounded-lg flex items-center gap-1")
-                            if button_link:
-                                download_link = button_link["href"]
-                                result = download_from_url(download_link)
-                                if result == "downloaded":
-                                    return "downloaded"
-                                else:
-                                    return None
-                            else:
-                                return None
-                        else:
-                            return None
-                    else:
-                        return None
-                else:
-                    return None
-            else:
-                return None
         else:
-            os.chdir(zips_path)
-            wget.download(url)
+            try:
+                os.chdir(zips_path)
+                wget.download(url)
+            except Exception as e:
+                os.chdir(file_path)
+                print(e)
+                return None
 
 
         # Fix points in the zips
