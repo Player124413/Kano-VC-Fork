@@ -19,7 +19,7 @@ cd %~dp0
 
 
 set "repoUrl=https://github.com/STaYsONzxc/Kano-VC-Fork.git"
-set "repoFolder=Kano-VC-Fork"
+set "repoFolder=Kano-Runtime"
 set "principal=%cd%\%repoFolder%"
 set "runtime_scripts=%cd%\%repoFolder%\runtime\Scripts"
 set "URL_BASE=https://huggingface.co/lj1995/VoiceConversionWebUI/resolve/main"
