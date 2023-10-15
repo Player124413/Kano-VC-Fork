@@ -302,7 +302,7 @@ def download_from_url(url):
                    with open(filename, 'wb') as f:   
                        f.write(download_response.content)
            else:
-                print("Не удалось извлечь имя файла из URL.")
+                print("Failed to get filename from URL.")
                 return None
 
         
