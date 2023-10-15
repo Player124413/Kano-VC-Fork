@@ -286,16 +286,15 @@ def download_from_url(url):
             else:
                 return None
             
-        elif "disk.yandex.ru" in url:
-            import requests
-            from urllib.parse import urlencode
+        if "disk.yandex.ru" in url:
             base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
-            public_key = url  
+            public_key = url
             final_url = base_url + urlencode(dict(public_key=public_key))
             response = requests.get(final_url)
             download_url = response.json()['href']
             download_response = requests.get(download_url)
-            with open('.assets/zips/{public_key}.zip', 'wb') as f:   
+
+            with open(f'.assets/zips/{response.json()["filename"]}.zip', 'wb') as f:
                 f.write(download_response.content)
         
         elif "www.weights.gg" in url:
