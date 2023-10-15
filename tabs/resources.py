@@ -286,38 +286,21 @@ def download_from_url(url):
                 wget.download(download_link)
             else:
                 return None
-        # elif "www.weights.gg" in url:
-        #     #Pls weights creator dont fix this because yes. c:
-        #     url_parts = url.split("/")
-        #     weights_gg_index = url_parts.index("www.weights.gg")
-        #     if weights_gg_index != -1 and weights_gg_index < len(url_parts) - 1:
-        #         model_part = "/".join(url_parts[weights_gg_index + 1:])
-        #         if "models" in model_part:
-        #             model_part = model_part.split("models/")[-1]
-        #             print(model_part)
-        #             if model_part:
-        #                 download_url = f"https://www.weights.gg/es/models/{model_part}"
-        #                 response = requests.get(download_url)
-        #                 if response.status_code == 200:
-        #                     soup = BeautifulSoup(response.text, "html.parser")
-        #                     button_link = soup.find("a", class_="bg-black text-white px-3 py-2 rounded-lg flex items-center gap-1")
-        #                     if button_link:
-        #                         download_link = button_link["href"]
-        #                         result = download_from_url(download_link)
-        #                         if result == "downloaded":
-        #                             return "downloaded"
-        #                         else:
-        #                             return None
-        #                     else:
-        #                         return None
-        #                 else:
-        #                     return None
-        #             else:
-        #                 return None
-        #         else:
-        #             return None
-        #     else:
-        #         return None
+                
+        elif "disk.yandex.ru" in url:
+            public_url = url.split("disk.yandex.ru/d/")[1]
+            response = requests.get(f"https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={public_url}")
+            download_url = response.json()['href']
+            response = requests.get(download_url, stream=True)
+            if response.status_code == 200:
+                file_name = f"{public_url}.zip"
+                with open(os.path.join(zips_path, file_name), 'wb') as file:
+                    for data in response.iter_content(1024):
+                        file.write(data)
+                print(f"File downloaded successfully: {file_name}")
+            else:
+                print("Failed to download file.")
+        
         else:
             try:
                 os.chdir(zips_path)
