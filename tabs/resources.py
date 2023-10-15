@@ -298,8 +298,9 @@ def download_from_url(url):
     
             filename = parse_qs(urlparse(unquote(download_url)).query)['filename'][0]
     
-            with open('.assets/zips/' + filename, 'wb') as f:   
+            with open(filename, 'wb') as f:   
                 f.write(download_response.content)
+
 
         
         elif "www.weights.gg" in url:
