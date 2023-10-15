@@ -261,7 +261,7 @@ def download_from_url(url):
                 file_id = url.split("pixeldrain.com/u/")[1]
                 os.chdir(zips_path)
                 print(file_id)
-                response = requests.get(f"https://pixeldrain.com/api/file/{file_id}")
+                response = requests.get(f"{file_id}")
                 if response.status_code == 200:
                     file_name = (
                         response.headers.get("Content-Disposition")
@@ -280,27 +280,6 @@ def download_from_url(url):
                 print(e)
                 os.chdir(file_path)
                 return None
-        elif "disk.yandex.ru" in url:
-            try:
-                base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
-                final_url = base_url + urlencode(dict(public_key=url))
-                response = requests.get(final_url)
-                download_url = response.json()['href']
-                download_response = requests.get(download_url)
-
-                os.chdir(zips_path)
-
-                file_name = url.split('/')[-1]  # Изменение здесь
-                os.makedirs(zips_path, exist_ok=True)
-
-                with open(os.path.join(zips_path, file_name), "wb") as newfile:
-                    newfile.write(download_response.content)
-                    os.chdir(file_path)
-                    return "downloaded"
-            except Exception as e:
-                print(e)
-                os.chdir(file_path)
-                return None
         elif "mediafire.com" in url:
             download_link = get_mediafire_download_link(url)
             if download_link:
@@ -308,6 +287,30 @@ def download_from_url(url):
                 wget.download(download_link)
             else:
                 return None
+                
+        elif "disk.yandex.ru/d/" in url:
+            try:
+                public_key = url.split("disk.yandex.ru/d/")[1]
+                print(public_key)
+
+                # URL API Yandex Disk
+                base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
+
+                # Получаем ссылку для загрузки
+                final_url = base_url + urlencode(dict(public_key=public_key))
+                response = requests.get(final_url)
+                download_url = response.json()['href']
+
+                # Загружаем файл и сохраняем его
+                download_response = requests.get(download_url)
+                with open(f'assets/zips/{public_key}.zip', 'wb') as f:
+                    f.write(download_response.content)
+
+        except Exception as e:
+            print(e)
+         else:
+                return None
+             
         elif "www.weights.gg" in url:
             #Pls weights creator dont fix this because yes. c:
             url_parts = url.split("/")
@@ -342,7 +345,7 @@ def download_from_url(url):
                 return None
         else:
             os.chdir(zips_path)
-            wget.download(url)
+            wget.download(url))
 
 
         # Fix points in the zips
