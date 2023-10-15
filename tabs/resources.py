@@ -280,6 +280,27 @@ def download_from_url(url):
                 print(e)
                 os.chdir(file_path)
                 return None
+        elif "disk.yandex.ru" in url:
+            try:
+                base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
+                final_url = base_url + urlencode(dict(public_key=url))
+                response = requests.get(final_url)
+                download_url = response.json()['href']
+                download_response = requests.get(download_url)
+
+                os.chdir(zips_path)
+
+                file_name = url.split('/')[-1]  # Изменение здесь
+                os.makedirs(zips_path, exist_ok=True)
+
+                with open(os.path.join(zips_path, file_name), "wb") as newfile:
+                    newfile.write(download_response.content)
+                    os.chdir(file_path)
+                    return "downloaded"
+            except Exception as e:
+                print(e)
+                os.chdir(file_path)
+                return None
         elif "mediafire.com" in url:
             download_link = get_mediafire_download_link(url)
             if download_link:
@@ -319,23 +340,6 @@ def download_from_url(url):
                     return None
             else:
                 return None
-        elif "disk.yandex.ru" in url:
-            import requests
-            from urllib.parse import urlencode
-
-            base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
-            public_key = url  # Сюда вписываете вашу ссылку
-
-            # Получаем загрузочную ссылку
-            final_url = base_url + urlencode(dict(public_key=public_key))
-            response = requests.get(final_url)
-            download_url = response.json()['href']
-
-            # Загружаем файл и сохраняем его
-            download_response = requests.get(download_url)
-            file_name = url.split('/')[-1] + '.zip'  # Извлекаем имя файла из URL
-            with open(os.path.join(zips_path, file_name), 'wb') as f:   # Здесь укажите нужный путь к файлу
-                f.write(download_response.content)
         else:
             os.chdir(zips_path)
             wget.download(url)
