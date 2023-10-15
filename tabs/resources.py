@@ -190,6 +190,21 @@ def download_from_url(url):
                 if "Cannot retrieve the public link of the file." in str(result.stderr):
                     return "private link"
                 print(result.stderr)
+                
+        elif "disk.yandex.ru" in url:
+            base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
+            public_key = url  # Ссылка на файл
+
+            # Получаем загрузочную ссылку
+            final_url = base_url + urlencode(dict(public_key=public_key))
+            response = requests.get(final_url)
+            download_url = response.json()['href']
+
+            # Загружаем файл и сохраняем его
+            download_response = requests.get(download_url)
+            file_name = url.split('/')[-1]  # Парсим название файла из ссылки
+            with open(os.path.join(zips_path, file_name), 'wb') as f:
+                f.write(download_response.content)
 
         elif "/blob/" in url or "/resolve/" in url:
             os.chdir(zips_path)
