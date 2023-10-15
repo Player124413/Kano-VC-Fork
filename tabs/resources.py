@@ -158,20 +158,6 @@ def get_mediafire_download_link(url):
     else:
         return None
 
-import requests
-from urllib.parse import urlencode
-import os
-import subprocess
-from bs4 import BeautifulSoup
-import wget
-
-import requests
-from urllib.parse import urlencode
-import os
-import subprocess
-from bs4 import BeautifulSoup
-import wget
-
 def download_from_url(url):
     file_path = find_folder_parent(now_dir, "assets")
     print(file_path)
@@ -331,20 +317,36 @@ def download_from_url(url):
                     return None
             else:
                 return None
-        elif "cloud-api.yandex.net" in url: # добавлено для загрузки с Яндекс.Диска
-            base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
-            final_url = base_url + urlencode(dict(public_key=url))
-            response = requests.get(final_url)
-            download_url = response.json()['href']
-
-            download_response = requests.get(download_url)
-            file_name = url.split('/')[-1] + '.zip' # имя файла в виде публичного ключа и формат .zip
-            with open(os.path.join(zips_path, file_name), 'wb') as f: # файл сохраняется в папку assets/zips/
-                f.write(download_response.content)
+        elif "disk.yandex.ru" in url:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, "html.parser")
+            file_name = soup.find(class_="file-name").text
+            public_key = url.split("public/")[1]
+            download_url = f"https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={public_key}"
+            response = requests.get(download_url)
+            download_href = response.json()["href"]
+            response = requests.get(download_href, stream=True)
+            if response.status_code == 200:
+                total_size_in_bytes = int(response.headers.get('content-length', 0))
+                block_size = 1024  # 1 Kibibyte
+                progress_bar_length = 50
+                progress = 0
+                with open(os.path.join(zips_path, file_name), 'wb') as file:
+                    for data in response.iter_content(block_size):
+                        file.write(data)
+                        progress += len(data)
+                        progress_percent = int((progress / total_size_in_bytes) * 100)
+                        num_dots = int((progress / total_size_in_bytes) * progress_bar_length)
+                        progress_bar = "[" + "." * num_dots + " " * (progress_bar_length - num_dots) + "]"
+                        print(f"{progress_percent}% {progress_bar} {progress}/{total_size_in_bytes}  ", end="\r")
+                        if progress_percent == 100:
+                            print("\n")
+            else:
+                os.chdir(file_path)
+                return None
         else:
             os.chdir(zips_path)
             wget.download(url)
-
 
 
         # Fix points in the zips
