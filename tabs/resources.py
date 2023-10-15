@@ -288,16 +288,19 @@ def download_from_url(url):
             
         elif "disk.yandex.ru" in url:
             import requests
-            from urllib.parse import urlencode
+            from urllib.parse import urlencode, unquote, urlparse, parse_qs
             base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
-            public_key = url
+            public_key = url  
             final_url = base_url + urlencode(dict(public_key=public_key))
             response = requests.get(final_url)
             download_url = response.json()['href']
             download_response = requests.get(download_url)
-
-            with open(f'.assets/zips/{response.json()["filename"]}.zip', 'wb') as f:
+    
+            filename = parse_qs(urlparse(unquote(download_url)).query)['filename'][0]
+    
+            with open('.assets/zips/' + filename, 'wb') as f:   
                 f.write(download_response.content)
+
         
         elif "www.weights.gg" in url:
             #Pls weights creator dont fix this because yes. c:
