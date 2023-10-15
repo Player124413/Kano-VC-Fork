@@ -191,19 +191,6 @@ def download_from_url(url):
                     return "private link"
                 print(result.stderr)
 
-        elif "disk.yandex.ru" in url:
-            public_key = url.split("/")[-1]
-            download_url = f"https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={public_key}"
-            response = requests.get(download_url)
-            if response.status_code == 200:
-                file_name = response.json()["href"].split("/")[-1]
-                with open(os.path.join(zips_path, file_name), "wb") as f:
-                    f.write(response.content)
-                 return downloaded
-             else:
-                 return None
-
-         
         elif "/blob/" in url or "/resolve/" in url:
             os.chdir(zips_path)
             if "/blob/" in url:
