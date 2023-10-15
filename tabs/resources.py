@@ -1,10 +1,10 @@
 import subprocess
 import os
 import sys
-import gdown
+
 import errno
-import json
 import shutil
+import yt_dlp
 import datetime
 import torch
 import glob
@@ -13,7 +13,6 @@ import traceback
 import lib.infer.infer_libs.uvr5_pack.mdx as mdx
 from lib.infer.modules.uvr5.mdxprocess import (
     get_model_list,
-    get_demucs_model_list,
     id_to_ptm,
     prepare_mdx,
     run_mdx,
@@ -177,20 +176,20 @@ def download_from_url(url):
 
             if file_id:
                 os.chdir(zips_path)
-                try:
-                    gdown.download(f"https://drive.google.com/uc?id={file_id}", quiet=False, fuzzy=True)
-                except Exception as e:
-                    error_message = str(e)
-                    if "Too many users have viewed or downloaded this file recently" in error_message:
-                        os.chdir(file_path)
-                        return "too much use"
-                    elif "Cannot retrieve the public link of the file." in error_message:
-                        os.chdir(file_path)
-                        return "private link"
-                    else:
-                        print(error_message)
-                        os.chdir(file_path)
-                        return None
+                result = subprocess.run(
+                    ["gdown", f"https://drive.google.com/uc?id={file_id}", "--fuzzy"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                )
+                if (
+                    "Too many users have viewed or downloaded this file recently"
+                    in str(result.stderr)
+                ):
+                    return "too much use"
+                if "Cannot retrieve the public link of the file." in str(result.stderr):
+                    return "private link"
+                print(result.stderr)
 
         elif "/blob/" in url or "/resolve/" in url:
             os.chdir(zips_path)
@@ -286,30 +285,41 @@ def download_from_url(url):
                 wget.download(download_link)
             else:
                 return None
-                
-        elif "disk.yandex.ru" in url:
-            public_url = url.split("disk.yandex.ru/d/")[1]
-            response = requests.get(f"https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={public_url}")
-            download_url = response.json()['href']
-            response = requests.get(download_url, stream=True)
-            if response.status_code == 200:
-                file_name = f"{public_url}.zip"
-                with open(os.path.join(zips_path, file_name), 'wb') as file:
-                    for data in response.iter_content(1024):
-                        file.write(data)
-                print(f"File downloaded successfully: {file_name}")
+        elif "www.weights.gg" in url:
+            #Pls weights creator dont fix this because yes. c:
+            url_parts = url.split("/")
+            weights_gg_index = url_parts.index("www.weights.gg")
+            if weights_gg_index != -1 and weights_gg_index < len(url_parts) - 1:
+                model_part = "/".join(url_parts[weights_gg_index + 1:])
+                if "models" in model_part:
+                    model_part = model_part.split("models/")[-1]
+                    print(model_part)
+                    if model_part:
+                        download_url = f"https://www.weights.gg/es/models/{model_part}"
+                        response = requests.get(download_url)
+                        if response.status_code == 200:
+                            soup = BeautifulSoup(response.text, "html.parser")
+                            button_link = soup.find("a", class_="bg-black text-white px-3 py-2 rounded-lg flex items-center gap-1")
+                            if button_link:
+                                download_link = button_link["href"]
+                                result = download_from_url(download_link)
+                                if result == "downloaded":
+                                    return "downloaded"
+                                else:
+                                    return None
+                            else:
+                                return None
+                        else:
+                            return None
+                    else:
+                        return None
+                else:
+                    return None
             else:
-                print("Failed to download file.")
-        
-        else:
-            try:
-                os.chdir(zips_path)
-                wget.download(url)
-            except Exception as e:
-                os.chdir(file_path)
-                print(e)
                 return None
-            
+        else:
+            os.chdir(zips_path)
+            wget.download(url)
 
         # Fix points in the zips
         for currentPath, _, zipFiles in os.walk(zips_path):
@@ -326,12 +336,6 @@ def download_from_url(url):
         return "downloaded"
     else:
         return None
-
-
-class error_message(Exception):
-    def __init__(self, mensaje):
-        self.mensaje = mensaje
-        super().__init__(mensaje)
 
 
 class error_message(Exception):
@@ -732,101 +736,56 @@ import zipfile
 
 
 def save_model(modelname, save_action):
-    parent_path = find_folder_parent(now_dir, "assets")
-    zips_path = os.path.join(parent_path, "assets", "zips")
-    dst = os.path.join(zips_path, f"{modelname}.zip")
-    logs_path = os.path.join(parent_path, "logs", modelname)
-    weights_path = os.path.join(logs_path, "weights")
-    save_folder = parent_path
-    infos = []
-
     try:
+        # Define paths
+        parent_path = find_folder_parent(now_dir, "assets")
+        weight_path = os.path.join(parent_path, "logs", "weights", f"{modelname}.pth")
+        logs_path = os.path.join(parent_path, "logs", modelname)
+        save_folder = SAVE_ACTION_CONFIG[save_action]['destination_folder']
+        save_path = os.path.join(parent_path, "logs", save_folder, modelname + ".zip")
+        infos = []
+
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+        # Comprobar si el directorio de logs existe
         if not os.path.exists(logs_path):
-            raise Exception("No model found.")
+            raise Exception(f"The logs directory '{logs_path}' does not exist.")
 
-        if not "content" in parent_path:
-            save_folder = os.path.join(parent_path, "logs")
-        else:
-            save_folder = "/content/drive/MyDrive/RVC_Backup"
-
-        infos.append(i18n("Save model"))
-        yield "\n".join(infos)
-
-        if not os.path.exists(save_folder):
-            os.mkdir(save_folder)
-        if not os.path.exists(os.path.join(save_folder, "manual_backup")):
-            os.mkdir(os.path.join(save_folder, "manual_backup"))
-        if not os.path.exists(os.path.join(save_folder, "finished")):
-            os.mkdir(os.path.join(save_folder, "finished"))
-
-        if os.path.exists(zips_path):
-            shutil.rmtree(zips_path)
-
-        os.mkdir(zips_path)
-
-        if save_action == i18n("Choose the method"):
-            raise Exception("No method chosen.")
-        
-        if save_action == i18n("Save all"):
-            save_folder = os.path.join(save_folder, "manual_backup")
-        elif save_action == i18n("Save D and G"):
-            save_folder = os.path.join(save_folder, "manual_backup")
-        elif save_action == i18n("Save voice"):
-            save_folder = os.path.join(save_folder, "finished")
-
-        # Obtain the configuration for the selected save action
-        save_action_config = SAVE_ACTION_CONFIG.get(save_action)
-
-        if save_action_config is None:
-            raise Exception("Invalid save action.")
-
-        # Check if we should copy all files
-        if save_action_config['copy_files']:
-            with zipfile.ZipFile(dst, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                for root, dirs, files in os.walk(logs_path):
+        # Realizar las acciones según la opción seleccionada
+        if SAVE_ACTION_CONFIG[save_action]['copy_files']:
+            # Option: Copy all files and folders
+            infos.append(save_action)
+            print(save_action)
+            yield "\n".join(infos)
+            with zipfile.ZipFile(save_path, 'w') as zipf:
+                for root, _, files in os.walk(logs_path):
                     for file in files:
                         file_path = os.path.join(root, file)
-                        zipf.write(file_path, os.path.relpath(file_path, logs_path))
+                        # Create a folder with the model name in the ZIP
+                        model_folder = os.path.join(modelname, "")
+                        zipf.write(file_path, os.path.join(model_folder, os.path.relpath(file_path, logs_path)))
+                zipf.write(weight_path, os.path.join(model_folder, os.path.basename(weight_path)))
+        
         else:
-            # Weight file management according to configuration
-            if save_action_config['include_weights']:
-                if not os.path.exists(weights_path):
-                    infos.append(i18n("Saved without inference model..."))
-                else:
-                    pth_files = [file for file in os.listdir(weights_path) if file.endswith('.pth')]
-                    if not pth_files:
-                        infos.append(i18n("Saved without inference model..."))
-                    else:
-                        with zipfile.ZipFile(dst, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                            skipped_files = set()
-                            for pth_file in pth_files:
-                                match = re.search(r'(.*)_s\d+.pth$', pth_file)
-                                if match:
-                                    base_name = match.group(1)
-                                    if base_name not in skipped_files:
-                                        print(f'Skipping autosave epoch files for {base_name}.')
-                                        skipped_files.add(base_name)
-                                    continue
-
-                                print(f'Processing file: {pth_file}')
-                                zipf.write(os.path.join(weights_path, pth_file), arcname=os.path.basename(pth_file))
-
+            # Option: Copy specific files
+            infos.append(save_action)
+            print(save_action)
             yield "\n".join(infos)
-            infos.append("\n" + i18n("This may take a few minutes, please wait..."))
-            yield "\n".join(infos)
+            files_to_copy = SAVE_ACTION_CONFIG[save_action]['files_to_copy']
+            with zipfile.ZipFile(save_path, 'w') as zipf:
+                for root, _, files in os.walk(logs_path):
+                    for file in files:
+                        for pattern in files_to_copy:
+                            if fnmatch.fnmatch(file, pattern):
+                                file_path = os.path.join(root, file)
+                                zipf.write(file_path, os.path.relpath(file_path, logs_path))
 
-            # Create a zip file with only the necessary files in the ZIP file
-            for pattern in save_action_config.get('files_to_copy', []):
-                matching_files = glob.glob(os.path.join(logs_path, pattern))
-                with zipfile.ZipFile(dst, 'a', zipfile.ZIP_DEFLATED) as zipf:
-                    for file_path in matching_files:
-                        zipf.write(file_path, os.path.basename(file_path))
+        if SAVE_ACTION_CONFIG[save_action]['include_weights']:
+            # Include the weight file in the ZIP
+            with zipfile.ZipFile(save_path, 'a') as zipf:
+                zipf.write(weight_path, os.path.basename(weight_path))
 
-        # Move the ZIP file created to the Save_Folder directory
-        shutil.move(dst, os.path.join(save_folder, f"{modelname}.zip"))
-
-        shutil.rmtree(zips_path)
-        infos.append("\n" + i18n("Model saved successfully"))
+        infos.append(i18n("The model has been saved successfully."))
         yield "\n".join(infos)
 
     except Exception as e:
@@ -958,6 +917,7 @@ def change_choices2():
 
 def uvr(
     input_url,
+    output_path,
     model_name,
     inp_root,
     save_root_vocal,
@@ -967,8 +927,7 @@ def uvr(
     format0,
     architecture,
 ):
-    print(input_url)
-    carpeta_a_eliminar = "assets/audios/audio-downloads"
+    carpeta_a_eliminar = "yt_downloads"
     if os.path.exists(carpeta_a_eliminar) and os.path.isdir(carpeta_a_eliminar):
         for archivo in os.listdir(carpeta_a_eliminar):
             ruta_archivo = os.path.join(carpeta_a_eliminar, archivo)
@@ -976,58 +935,28 @@ def uvr(
                 os.remove(ruta_archivo)
             elif os.path.isdir(ruta_archivo):
                 shutil.rmtree(ruta_archivo)
-    else:
-        os.mkdir(carpeta_a_eliminar)
 
-    # Define the API endpoint URL
-    api_url = "https://co.wuk.sh/api/json"  # Update the URL if necessary
-
-    # Define the request body as a Python dictionary
-    request_body = {
-        "url": input_url,  # Replace with the actual URL of the video
-        "vCodec": "h264",           # Video codec (h264, av1, vp9)
-        "vQuality": "720",          # Video quality (e.g., 720)
-        "aFormat": "wav",           # Audio format (mp3, ogg, wav, opus)
-        "isAudioOnly": True,        # Set to True to extract audio only
-        "isAudioMuted": False,      # Set to True to disable audio in video
+    ydl_opts = {
+        "no-windows-filenames": True,
+        "restrict-filenames": True,
+        "extract_audio": True,
+        "format": "bestaudio",
+        "quiet": True,
+        "no-warnings": True,
     }
 
-    # Convert the request body dictionary to JSON
-    request_body_json = json.dumps(request_body)
-
-    # Set the headers including the "Accept" header
-    headers = {
-        "Content-Type": "application/json",  # Specify the content type as JSON
-        "Accept": "application/json"        # Specify that you accept JSON responses
-    }
-
-    # Send the POST request to the API with headers
-    response = requests.post(api_url, data=request_body_json, headers=headers)
-
-    # Check if the request was successful (status code 200)
-    if response.status_code == 200:
-        # Parse the response JSON
-        response_data = response.json()
-        
-        # Check the status of the response
-        if response_data["status"] == "stream":
-            # Extract the audio URL from the response
-            audio_url = response_data["url"]
-            
-            # Download the audio using wget
-            print("Downloading audio...")
-            filename = wget.download(audio_url, bar=None)
-
-            # Move the downloaded file to the current directory
-            shutil.move(filename, "./assets/audios/audio-downloads/" + filename)
-            
-            print("Audio downloaded with the filename:", filename)
-        else:
-            print("API request succeeded, but status is not 'stream'. Status:", response_data["status"])
-    else:
-        print("API request failed with status code:", response.status_code)
-
-    filename_ext = os.path.splitext(filename)[0]
+    try:
+        print(i18n("Downloading audio from the video..."))
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info_dict = ydl.extract_info(input_url, download=False)
+            formatted_title = format_title(info_dict.get("title", "default_title"))
+            formatted_outtmpl = output_path + "/" + formatted_title + ".wav"
+            ydl_opts["outtmpl"] = formatted_outtmpl
+            ydl = yt_dlp.YoutubeDL(ydl_opts)
+            ydl.download([input_url])
+        print(i18n("Audio downloaded!"))
+    except Exception as error:
+        print(i18n("An error occurred:"), error)
 
     actual_directory = os.path.dirname(__file__)
     actual_directory = os.path.abspath(os.path.join(actual_directory, ".."))
@@ -1035,16 +964,16 @@ def uvr(
     vocal_directory = os.path.join(actual_directory, save_root_vocal)
     instrumental_directory = os.path.join(actual_directory, save_root_ins)
 
-    vocal_formatted = f"vocal_{filename}.reformatted.wav_10.wav"
-    instrumental_formatted = f"instrument_{filename}.reformatted.wav_10.wav"
+    vocal_formatted = f"vocal_{formatted_title}.wav.reformatted.wav_10.wav"
+    instrumental_formatted = f"instrument_{formatted_title}.wav.reformatted.wav_10.wav"
 
     vocal_audio_path = os.path.join(vocal_directory, vocal_formatted)
     instrumental_audio_path = os.path.join(
         instrumental_directory, instrumental_formatted
     )
 
-    vocal_formatted_mdx = f"{filename_ext}_Vocals_custom.wav"
-    instrumental_formatted_mdx = f"{filename_ext}_Instrumental_custom.wav"
+    vocal_formatted_mdx = f"{formatted_title}_vocal_.wav"
+    instrumental_formatted_mdx = f"{formatted_title}_instrument_.wav"
 
     vocal_audio_path_mdx = os.path.join(vocal_directory, vocal_formatted_mdx)
     instrumental_audio_path_mdx = os.path.join(
@@ -1053,9 +982,7 @@ def uvr(
 
     if architecture == "VR":
         try:
-            print(
-                i18n("Starting audio conversion... (This might take a moment)")
-            )
+            print(i18n("Starting audio conversion... (This might take a moment)"))
             inp_root = inp_root.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
             save_root_vocal = (
                 save_root_vocal.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
@@ -1063,7 +990,11 @@ def uvr(
             save_root_ins = (
                 save_root_ins.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
             )
-
+            usable_files = [
+                os.path.join(inp_root, file)
+                for file in os.listdir(inp_root)
+                if file.endswith(tuple(sup_audioext))
+            ]
             if model_name == "onnx_dereverb_By_FoxJoy":
                 pre_fun = MDXNetDereverb(15, config.device)
             else:
@@ -1077,12 +1008,7 @@ def uvr(
                     is_half=config.is_half,
                 )
             if inp_root != "":
-                paths = [
-                    os.path.join(inp_root, name)
-                    for root, _, files in os.walk(inp_root, topdown=False)
-                    for name in files
-                    if name.endswith(tuple(sup_audioext)) and root == inp_root
-                ]
+                paths = usable_files
             else:
                 paths = [path.name for path in paths]
             for path in paths:
@@ -1105,7 +1031,7 @@ def uvr(
                     traceback.print_exc()
                 if need_reformat == 1:
                     tmp_path = "%s/%s.reformatted.wav" % (
-                        os.path.join(os.environ["tmp"]),
+                        os.path.join(os.environ["temp"]),
                         os.path.basename(inp_path),
                     )
                     os.system(
@@ -1146,37 +1072,40 @@ def uvr(
                 traceback.print_exc()
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-
+                print("Executed torch.cuda.empty_cache()")
     elif architecture == "MDX":
         try:
-            print(
-                i18n("Starting audio conversion... (This might take a moment)")
-            )
+            print(i18n("Starting audio conversion... (This might take a moment)"))
             inp_root, save_root_vocal, save_root_ins = [
                 x.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
                 for x in [inp_root, save_root_vocal, save_root_ins]
             ]
 
-            if inp_root != "":
-                paths = [
-                    os.path.join(inp_root, name)
-                    for root, _, files in os.walk(inp_root, topdown=False)
-                    for name in files
-                    if name.endswith(tuple(sup_audioext)) and root == inp_root
-                ]
-            else:
-                paths = [path.name for path in paths]
+            usable_files = [
+                os.path.join(inp_root, file)
+                for file in os.listdir(inp_root)
+                if file.endswith(tuple(sup_audioext))
+            ]
+            try:
+                if paths != None:
+                    paths = [path.name for path in paths]
+                else:
+                    paths = usable_files
+
+            except:
+                traceback.print_exc()
+                paths = usable_files
             print(paths)
             invert = True
             denoise = True
             use_custom_parameter = True
-            dim_f = 3072
+            dim_f = 2048
             dim_t = 256
             n_fft = 7680
             use_custom_compensation = True
             compensation = 1.025
-            suffix = "Vocals_custom"  # @param ["Vocals", "Drums", "Bass", "Other"]{allow-input: true}
-            suffix_invert = "Instrumental_custom"  # @param ["Instrumental", "Drumless", "Bassless", "Instruments"]{allow-input: true}
+            suffix = "vocal_"  # @param ["Vocals", "Drums", "Bass", "Other"]{allow-input: true}
+            suffix_invert = "instrument_"  # @param ["Instrumental", "Drumless", "Bassless", "Instruments"]{allow-input: true}
             print_settings = True  # @param{type:"boolean"}
             onnx = id_to_ptm(model_name)
             compensation = (
@@ -1225,9 +1154,10 @@ def uvr(
                     print(f"    -{filename}")
                     print(f"{os.path.basename(filename)}->Success")
         except:
-            print(traceback.format_exc())
+            traceback.print_exc()
         finally:
             try:
+                del mdx_model
                 return (
                     i18n("Finished"),
                     vocal_audio_path_mdx,
@@ -1237,87 +1167,9 @@ def uvr(
                 traceback.print_exc()
 
             print("clean_empty_cache")
+
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-
-    elif architecture == "Demucs (Beta)":
-        try:
-            print(
-                i18n("Starting audio conversion... (This might take a moment)")
-            )
-            inp_root, save_root_vocal, save_root_ins = [
-                x.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
-                for x in [inp_root, save_root_vocal, save_root_ins]
-            ]
-
-            if inp_root != "":
-                paths = [
-                    os.path.join(inp_root, name)
-                    for root, _, files in os.walk(inp_root, topdown=False)
-                    for name in files
-                    if name.endswith(tuple(sup_audioext)) and root == inp_root
-                ]
-            else:
-                paths = [path.name for path in paths]
-
-            # Loop through the audio files and separate sources
-            for path in paths:
-                input_audio_path = os.path.join(inp_root, path)
-                filename_without_extension = os.path.splitext(
-                    os.path.basename(input_audio_path)
-                )[0]
-                _output_dir = os.path.join(tmp, model_name, filename_without_extension)
-                vocals = os.path.join(_output_dir, "vocals.wav")
-                no_vocals = os.path.join(_output_dir, "no_vocals.wav")
-
-                os.makedirs(tmp, exist_ok=True)
-
-                if torch.cuda.is_available():
-                    cpu_insted = ""
-                else:
-                    cpu_insted = "-d cpu"
-                print(cpu_insted)
-
-                # Use with os.system  to separate audio sources becuase at invoking from the command line it is faster than invoking from python
-                os.system(
-                    f"python -m demucs.separate --two-stems=vocals -n {model_name} {cpu_insted} {path} -o {tmp}"
-                )
-
-                # Move vocals and no_vocals to the output directory assets/audios for the vocal and assets/audios/audio-others for the instrumental
-                shutil.move(vocals, save_root_vocal)
-                shutil.move(no_vocals, save_root_ins)
-
-                # And now rename the vocals and no vocals with the name of the input audio file and the suffix vocals or instrumental
-                os.rename(
-                    os.path.join(save_root_vocal, "vocals.wav"),
-                    os.path.join(
-                        save_root_vocal, f"{filename_without_extension}_vocals.wav"
-                    ),
-                )
-                os.rename(
-                    os.path.join(save_root_ins, "no_vocals.wav"),
-                    os.path.join(
-                        save_root_ins, f"{filename_without_extension}_instrumental.wav"
-                    ),
-                )
-
-                vocal_formatted_demucs = f"{filename_without_extension}_vocals.wav"
-                instrumental_formatted_demucs = f"{filename_ext}_instrumental.wav"
-
-                vocal_audio_path_demucs = os.path.join(vocal_directory, vocal_formatted_demucs)
-                instrumental_audio_path_demucs = os.path.join(
-                    instrumental_directory, instrumental_formatted_demucs
-                )
-
-                # Remove the temporary directory
-                os.rmdir(os.path.join(tmp, model_name, filename_without_extension))
-
-                print(f"{os.path.basename(input_audio_path)}->Success")
-
-                return i18n("Finished"), vocal_audio_path_demucs, instrumental_audio_path_demucs
-
-        except:
-            print(traceback.format_exc())
 
 
 def load_downloaded_audio(url):
@@ -1468,14 +1320,10 @@ def get_vc(sid, to_return_protect0, to_return_protect1):
 def update_model_choices(select_value):
     model_ids = get_model_list()
     model_ids_list = list(model_ids)
-    demucs_model_ids = get_demucs_model_list()
-    demucs_model_ids_list = list(demucs_model_ids)
     if select_value == "VR":
         return {"choices": uvr5_names, "__type__": "update"}
     elif select_value == "MDX":
         return {"choices": model_ids_list, "__type__": "update"}
-    elif select_value == "Demucs (Beta)":
-        return {"choices": demucs_model_ids_list, "__type__": "update"}
 
 
 def save_drop_model_pth(dropbox):
@@ -1615,15 +1463,22 @@ def download_audio():
         )
 
 
-def audio_downloader_separator():
-    gr.Markdown(value="# " + i18n("Download and separate audio tracks"))
+def youtube_separator():
+    gr.Markdown(value="# " + i18n("Separate YouTube tracks"))
     gr.Markdown(
         value=i18n(
-            "Downloads an audio or video using the https://cobalt.tools API from an online service and automatically separate the vocal and instrumental tracks compatible services: https://github.com/wukko/cobalt#supported-services"
+            "Download audio from a YouTube video and automatically separate the vocal and instrumental tracks"
         )
     )
     with gr.Row():
-        input_url = gr.inputs.Textbox(label=i18n("Enter the Video or Audio link:"))
+        input_url = gr.inputs.Textbox(label=i18n("Enter the YouTube link:"))
+        output_path = gr.Textbox(
+            label=i18n(
+                "Enter the path of the audio folder to be processed (copy it from the address bar of the file manager):"
+            ),
+            value=os.path.abspath(os.getcwd()).replace("\\", "/") + "/yt_downloads",
+            visible=False,
+        )
         advanced_settings_checkbox = gr.Checkbox(
             value=False,
             label=i18n("Advanced Settings"),
@@ -1635,7 +1490,7 @@ def audio_downloader_separator():
         with gr.Column():
             model_select = gr.Radio(
                 label=i18n("Model Architecture:"),
-                choices=["VR", "MDX", "Demucs (Beta)"],
+                choices=["VR", "MDX"],
                 value="VR",
                 interactive=True,
             )
@@ -1666,11 +1521,11 @@ def audio_downloader_separator():
             )
             dir_wav_input = gr.Textbox(
                 label=i18n("Enter the path of the audio folder to be processed:"),
-                value=((os.getcwd()).replace("\\", "/") + "/assets/audios/audio-downloads"),
+                value=((os.getcwd()).replace("\\", "/") + "/yt_downloads"),
                 visible=False,
             )
             format0 = gr.Radio(
-                label=i18n("Export file format (Demucs not supported):"),
+                label=i18n("Export file format"),
                 choices=["wav", "flac", "mp3", "m4a"],
                 value="wav",
                 visible=False,
@@ -1698,6 +1553,7 @@ def audio_downloader_separator():
             uvr,
             [
                 input_url,
+                output_path,
                 model_choose,
                 dir_wav_input,
                 opt_vocal_root,
