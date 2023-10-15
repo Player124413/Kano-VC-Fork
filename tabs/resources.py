@@ -10,6 +10,7 @@ import torch
 import glob
 import gradio as gr
 import traceback
+from urllib.parse import urlencode, unquote, urlparse, parse_qs
 import lib.infer.infer_libs.uvr5_pack.mdx as mdx
 from lib.infer.modules.uvr5.mdxprocess import (
     get_model_list,
@@ -285,11 +286,8 @@ def download_from_url(url):
                 wget.download(download_link)
             else:
                 return None
-            
+     
         elif "disk.yandex.ru" in url:
-           import requests
-           import os
-           from urllib.parse import urlencode, unquote, urlparse, parse_qs
            base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
            public_key = url  
            final_url = base_url + urlencode(dict(public_key=public_key))
