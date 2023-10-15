@@ -158,6 +158,13 @@ def get_mediafire_download_link(url):
     else:
         return None
 
+import requests
+from urllib.parse import urlencode
+import os
+import subprocess
+from bs4 import BeautifulSoup
+import wget
+
 def download_from_url(url):
     file_path = find_folder_parent(now_dir, "assets")
     print(file_path)
@@ -317,22 +324,19 @@ def download_from_url(url):
                     return None
             else:
                 return None
-        elif "disk.yandex.ru" in url:
-            public_url = url.split("disk.yandex.ru/d/")[1]
-            response = requests.get(f"https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key={public_url}")
+        elif "cloud-api.yandex.net" in url: # добавлено для загрузки с Яндекс.Диска
+            base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
+            final_url = base_url + urlencode(dict(public_key=url))
+            response = requests.get(final_url)
             download_url = response.json()['href']
-            response = requests.get(download_url, stream=True)
-            if response.status_code == 200:
-                file_name = f"{public_url}.zip"
-                with open(os.path.join(zips_path, file_name), 'wb') as file:
-                    for data in response.iter_content(1024):
-                        file.write(data)
-                print(f"File downloaded successfully: {file_name}")
-            else:
-                print("Failed to download file.")
+
+            download_response = requests.get(download_url)
+            with open('.assets/zips/{public_key}.zip', 'wb') as f:
+                f.write(download_response.content)
         else:
             os.chdir(zips_path)
             wget.download(url)
+
 
         # Fix points in the zips
         for currentPath, _, zipFiles in os.walk(zips_path):
