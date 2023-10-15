@@ -192,7 +192,7 @@ def download_from_url(url):
                     return "private link"
                 print(result.stderr)
                 
-         elif "yadi.sk" in url:
+         elif "disk.yandex.ru" in url:
             base_url = "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key="
             final_url = base_url + url
             response = requests.get(final_url)
