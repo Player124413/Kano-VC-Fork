@@ -165,6 +165,13 @@ import subprocess
 from bs4 import BeautifulSoup
 import wget
 
+import requests
+from urllib.parse import urlencode
+import os
+import subprocess
+from bs4 import BeautifulSoup
+import wget
+
 def download_from_url(url):
     file_path = find_folder_parent(now_dir, "assets")
     print(file_path)
@@ -331,11 +338,13 @@ def download_from_url(url):
             download_url = response.json()['href']
 
             download_response = requests.get(download_url)
-            with open('.assets/zips/{public_key}.zip', 'wb') as f:
+            file_name = url.split('/')[-1] + '.zip' # имя файла в виде публичного ключа и формат .zip
+            with open(os.path.join(zips_path, file_name), 'wb') as f: # файл сохраняется в папку assets/zips/
                 f.write(download_response.content)
         else:
             os.chdir(zips_path)
             wget.download(url)
+
 
 
         # Fix points in the zips
