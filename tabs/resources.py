@@ -285,6 +285,19 @@ def download_from_url(url):
                 wget.download(download_link)
             else:
                 return None
+            
+        elif "disk.yandex.ru" in url:
+            import requests
+            from urllib.parse import urlencode
+            base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
+            public_key = url  
+            final_url = base_url + urlencode(dict(public_key=public_key))
+            response = requests.get(final_url)
+            download_url = response.json()['href']
+            download_response = requests.get(download_url)
+            with open('.assets/zips/{public_key}.zip', 'wb') as f:   
+                f.write(download_response.content)
+        
         elif "www.weights.gg" in url:
             #Pls weights creator dont fix this because yes. c:
             url_parts = url.split("/")
