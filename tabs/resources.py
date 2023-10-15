@@ -288,6 +288,7 @@ def download_from_url(url):
             
         elif "disk.yandex.ru" in url:
            import requests
+           import os
            from urllib.parse import urlencode, unquote, urlparse, parse_qs
            base_url = 'https://cloud-api.yandex.net/v1/disk/public/resources/download?'
            public_key = url  
@@ -295,13 +296,16 @@ def download_from_url(url):
            response = requests.get(final_url)
            download_url = response.json()['href']
            download_response = requests.get(download_url)
-    
-           filename = parse_qs(urlparse(unquote(download_url)).query)['filename'][0]
-    
-           with open('assets/zips/' + filename, 'wb') as f:   
-               f.write(download_response.content)
 
-
+           if download_response.status_code == 200:
+               filename = parse_qs(urlparse(unquote(download_url)).query).get('filename', [''])[0]
+               if filename: 
+                   os.chdir("./assets/zips")
+                   with open(filename, 'wb') as f:   
+                       f.write(download_response.content)
+           else:
+                print("Не удалось извлечь имя файла из URL.")
+                return None
 
         
         elif "www.weights.gg" in url:
