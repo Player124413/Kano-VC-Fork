@@ -191,7 +191,21 @@ def download_from_url(url):
                 if "Cannot retrieve the public link of the file." in str(result.stderr):
                     return "private link"
                 print(result.stderr)
-
+                
+         elif "yadi.sk" in url:
+            base_url = "https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key="
+            final_url = base_url + url
+            response = requests.get(final_url)
+            download_url = response.json()['href']
+            download_response = requests.get(download_url)
+            file_name = url.split('/')[-1] + '.zip'
+            file_path = os.path.join('assets', 'zips', file_name)
+            with open(file_path, 'wb') as f:
+                f.write(download_response.content)
+        else:
+            os.chdir(zips_path)
+            wget.download(url)  
+            
         elif "/blob/" in url or "/resolve/" in url:
             os.chdir(zips_path)
             if "/blob/" in url:
