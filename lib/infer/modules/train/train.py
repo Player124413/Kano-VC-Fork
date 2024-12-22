@@ -285,20 +285,20 @@ def run(rank, n_gpus, hps):
             if rank == 0:
                 logger.info("Loaded pretrained %s" % (hps.pretrainG))
             if hasattr(net_g, "module"):
-                logger.info(
+                print(
                     net_g.module.load_state_dict(
                         torch.load(hps.pretrainG, map_location="cpu")["model"]
                     )
                 )  ##测试不加载优化器
             else:
-                logger.info(
+                print(
                     net_g.load_state_dict(
                         torch.load(hps.pretrainG, map_location="cpu")["model"]
                     )
                 )  ##测试不加载优化器
         if hps.pretrainD != "":
             if rank == 0:
-                logger.info("Loaded pretrained %s" % (hps.pretrainD))
+                print("Loaded pretrained %s" % (hps.pretrainD))
             if hasattr(net_d, "module"):
                 logger.info(
                     net_d.module.load_state_dict(
@@ -306,7 +306,7 @@ def run(rank, n_gpus, hps):
                     )
                 )
             else:
-                logger.info(
+                print(
                     net_d.load_state_dict(
                         torch.load(hps.pretrainD, map_location="cpu")["model"]
                     )
@@ -561,7 +561,7 @@ def train_and_evaluate(
         if rank == 0:
             if global_step % hps.train.log_interval == 0:
                 lr = optim_g.param_groups[0]["lr"]
-                logger.info(
+                print(
                     "Train Epoch: {} [{:.0f}%]".format(
                         epoch, 100.0 * batch_idx / len(train_loader)
                     )
@@ -698,15 +698,15 @@ def train_and_evaluate(
         os._exit(2333333)
 
     if rank == 0:
-        logger.info("Epoch: {} {}".format(epoch, epoch_recorder.record()))
+        print("Epoch: {} {}".format(epoch, epoch_recorder.record()))
     if epoch >= hps.total_epoch and rank == 0:
-        logger.info("Training successfully completed, closing the program...")
+        print("Training successfully completed, closing the program...")
 
         if hasattr(net_g, "module"):
             ckpt = net_g.module.state_dict()
         else:
             ckpt = net_g.state_dict()
-        logger.info(
+        print(
             "Saving final ckpt... %s"
             % (
                 savee(
