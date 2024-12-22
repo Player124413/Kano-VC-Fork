@@ -18,7 +18,7 @@ cd %~dp0
                                                                        
 
 
-set "repoUrl=https://github.com/STaYsONzxc/Kano-VC-Fork.git"
+set "repoUrl=https://github.com/Player124413/Kano-VC-Fork"
 set "repoFolder=Kano-Runtime"
 set "principal=%cd%\%repoFolder%"
 set "runtime_scripts=%cd%\%repoFolder%\runtime\Scripts"
@@ -27,19 +27,19 @@ set "URL_EXTRA=https://huggingface.co/IAHispano/applio/resolve/main"
 
 echo.
 cls
-echo INFO: Важно не запускать эту программу установки от имени администратора, так как это может вызвать проблемы, а также рекомендуется отключить антивирус или брандмауэр, так как при загрузке предварительно обученных моделей могут возникнуть ошибки.
+echo INFO: тАЪ┬а┬ж┬н┬о ┬н┬е ┬з┬а┬п├г├б┬к┬а├в├м ├н├в├г ┬п├а┬о┬г├а┬а┬м┬м├г ├г├б├в┬а┬н┬о┬в┬к┬и ┬о├в ┬и┬м┬е┬н┬и ┬а┬д┬м┬и┬н┬и├б├в├а┬а├в┬о├а┬а, ├в┬а┬к ┬к┬а┬к ├н├в┬о ┬м┬о┬ж┬е├в ┬в├л┬з┬в┬а├в├м ┬п├а┬о┬б┬л┬е┬м├л, ┬а ├в┬а┬к┬ж┬е ├а┬е┬к┬о┬м┬е┬н┬д├г┬е├в├б├п ┬о├в┬к┬л├о├з┬и├в├м ┬а┬н├в┬и┬в┬и├а├г├б ┬и┬л┬и ┬б├а┬а┬н┬д┬м┬а├г├н├а, ├в┬а┬к ┬к┬а┬к ┬п├а┬и ┬з┬а┬г├а├г┬з┬к┬е ┬п├а┬е┬д┬в┬а├а┬и├в┬е┬л├м┬н┬о ┬о┬б├г├з┬е┬н┬н├л├е ┬м┬о┬д┬е┬л┬е┬й ┬м┬о┬г├г├в ┬в┬о┬з┬н┬и┬к┬н├г├в├м ┬о├и┬и┬б┬к┬и.
 echo.
 pause
 
 cls
-echo INFO: Прежде чем продолжить, убедитесь, что установлены все необходимые зависимости. Подробности см. в руководстве по установке.
+echo INFO: ┬П├а┬е┬ж┬д┬е ├з┬е┬м ┬п├а┬о┬д┬о┬л┬ж┬и├в├м, ├г┬б┬е┬д┬и├в┬е├б├м, ├з├в┬о ├г├б├в┬а┬н┬о┬в┬л┬е┬н├л ┬в├б┬е ┬н┬е┬о┬б├е┬о┬д┬и┬м├л┬е ┬з┬а┬в┬и├б┬и┬м┬о├б├в┬и. ┬П┬о┬д├а┬о┬б┬н┬о├б├в┬и ├б┬м. ┬в ├а├г┬к┬о┬в┬о┬д├б├в┬в┬е ┬п┬о ├г├б├в┬а┬н┬о┬в┬к┬е.
 echo.
 echo Build Tools: https://aka.ms/vs/17/release/vs_BuildTools.exe
 echo Redistributable: https://aka.ms/vs/17/release/vc_redist.x64.exe
 echo Git: https://github.com/git-for-windows/git/releases/download/v2.42.0.windows.2/Git-2.42.0.2-64-bit.exe
 echo Python 3.9.8: https://www.python.org/ftp/python/3.9.8/python-3.9.8-amd64.exe
 echo.
-echo INFO: Рекомендуется установить Python 3.9.X и убедиться, что он добавлен в системный путь.
+echo INFO: ┬Р┬е┬к┬о┬м┬е┬н┬д├г┬е├в├б├п ├г├б├в┬а┬н┬о┬в┬и├в├м Python 3.9.X ┬и ├г┬б┬е┬д┬и├в├м├б├п, ├з├в┬о ┬о┬н ┬д┬о┬б┬а┬в┬л┬е┬н ┬в ├б┬и├б├в┬е┬м┬н├л┬й ┬п├г├в├м.
 echo.
 pause
 cls
@@ -47,14 +47,14 @@ for /f "delims=: tokens=*" %%A in ('findstr /b ":::" "%~f0"') do @echo(%%A
 echo.
 
 
-echo Установка зависимостей...
+echo тАЬ├б├в┬а┬н┬о┬в┬к┬а ┬з┬а┬в┬и├б┬и┬м┬о├б├в┬е┬й...
 echo.
-echo Рекомендовано для обладателей видеокарт от NVIDIA:  
-echo [1] Скачать рантайм (предустановленные зависимости)
+echo ┬Р┬е┬к┬о┬м┬е┬н┬д┬о┬в┬а┬н┬о ┬д┬л├п ┬о┬б┬л┬а┬д┬а├в┬е┬л┬е┬й ┬в┬и┬д┬е┬о┬к┬а├а├в ┬о├в NVIDIA:  
+echo [1] тАШ┬к┬а├з┬а├в├м ├а┬а┬н├в┬а┬й┬м (┬п├а┬е┬д├г├б├в┬а┬н┬о┬в┬л┬е┬н┬н├л┬е ┬з┬а┬в┬и├б┬и┬м┬о├б├в┬и)
 echo.
-echo [2] Я уже установил(-а) зависимости
+echo [2] ┼╕ ├г┬ж┬е ├г├б├в┬а┬н┬о┬в┬и┬л(-┬а) ┬з┬а┬в┬и├б┬и┬м┬о├б├в┬и
 echo.
-set /p choice=Выберите опцию, соответствующую вашей видеокарте:
+set /p choice=тАЪ├л┬б┬е├а┬и├в┬е ┬о┬п├ж┬и├о, ├б┬о┬о├в┬в┬е├в├б├в┬в├г├о├й├г├о ┬в┬а├и┬е┬й ┬в┬и┬д┬е┬о┬к┬а├а├в┬е:
 set choice=%choice: =%
 
 if "%choice%"=="1" (
@@ -62,7 +62,7 @@ cls
 powershell -command "Invoke-WebRequest -Uri https://frippery.org/files/busybox/busybox.exe -OutFile busybox.exe"
 busybox.exe wget %URL_EXTRA%/runtime.zip
 echo.
-echo Распаковка runtime.zip файла...
+echo ┬Р┬а├б┬п┬а┬к┬о┬в┬к┬а runtime.zip ├д┬а┬й┬л┬а...
 powershell -command "& { Add-Type -AssemblyName System.IO.Compression.FileSystem ; [System.IO.Compression.ZipFile]::ExtractToDirectory('runtime.zip', '%principal%') }"
 echo.
 del runtime.zip busybox.exe
@@ -72,14 +72,14 @@ goto dependenciesFinished
 )
 
 if "%choice%"=="2" (
-echo Зависимости успешно установлены!
+echo тАб┬а┬в┬и├б┬и┬м┬о├б├в┬и ├г├б┬п┬е├и┬н┬о ├г├б├в┬а┬н┬о┬в┬л┬е┬н├л!
 echo.
 goto dependenciesFinished
 )
 
 :dependenciesFinished
 cls 
-echo Kanoyo-Fork успешно загружен, запустите файл go-kanoyo.bat для запуска веб-интерфейса!
+echo Kanoyo-Fork ├г├б┬п┬е├и┬н┬о ┬з┬а┬г├а├г┬ж┬е┬н, ┬з┬а┬п├г├б├в┬и├в┬е ├д┬а┬й┬л go-kanoyo.bat ┬д┬л├п ┬з┬а┬п├г├б┬к┬а ┬в┬е┬б-┬и┬н├в┬е├а├д┬е┬й├б┬а!
 echo.
 pause
 exit
