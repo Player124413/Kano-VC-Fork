@@ -19,9 +19,9 @@ platform_stft_mapping = {
 stft = platform_stft_mapping.get(sys.platform)
 
 def wav2(i, o, format):
-    inp = av.open(i, 'rb')
+    inp = av.open(i, 'r')
     if format == "m4a": format = "mp4"
-    out = av.open(o, 'wb', format=format)
+    out = av.open(o, 'w', format=format)
     if format == "ogg": format = "libvorbis"
     if format == "mp4": format = "aac"
 
@@ -37,7 +37,7 @@ def wav2(i, o, format):
 
 def audio2(i, o, format, sr):
     inp = av.open(i, 'r')
-    out = av.open(o, 'wb', format=format)
+    out = av.open(o, 'w', format=format)
     if format == "ogg": format = "libvorbis"
     if format == "f32le": format = "pcm_f32le"
 
@@ -55,7 +55,7 @@ def load_audion(file, sr):
         file = (
             file.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
         )  # 防止小白拷路径头尾带了空格和"和回车
-        with open(file, "rb") as f:
+        with open(file, "r") as f:
             with BytesIO() as out:
                 audio2(f, out, "f32le", sr)
                 return np.frombuffer(out.getvalue(), np.float32).flatten()
@@ -101,7 +101,7 @@ def load_audio(file, sr, DoFormant=False, Quefrency=1.0, Timbre=1.0):
             file = f"{file}FORMANTED.wav"
             print(f" · Formanted {file}!\n")
 
-        with open(file, "rb") as f:
+        with open(file, "r") as f:
             with BytesIO() as out:
                 audio2(f, out, "f32le", sr)
                 audio_data = np.frombuffer(out.getvalue(), np.float32).flatten()
