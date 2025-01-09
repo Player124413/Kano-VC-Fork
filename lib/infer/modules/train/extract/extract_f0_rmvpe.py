@@ -2,13 +2,16 @@ import os
 import sys
 import traceback
 
+import parselmouth
+
 now_dir = os.getcwd()
 sys.path.append(now_dir)
 import logging
 
 import numpy as np
+import pyworld
 
-from lib.infer.infer_libs.audio import load_audio
+from infer.lib.audio import load_audio
 
 logging.getLogger("numba").setLevel(logging.WARNING)
 
@@ -43,7 +46,7 @@ class FeatureInput(object):
         # p_len = x.shape[0] // self.hop
         if f0_method == "rmvpe":
             if hasattr(self, "model_rmvpe") == False:
-                from lib.infer.infer_libs.rmvpe import RMVPE
+                from infer.lib.rmvpe import RMVPE
 
                 print("Loading rmvpe model")
                 self.model_rmvpe = RMVPE(
@@ -103,7 +106,7 @@ if __name__ == "__main__":
     # exp_dir=r"E:\codes\py39\dataset\mi-test"
     # n_p=16
     # f = open("%s/log_extract_f0.log"%exp_dir, "w")
-    printt(sys.argv)
+    printt(" ".join(sys.argv))
     featureInput = FeatureInput()
     paths = []
     inp_root = "%s/1_16k_wavs" % (exp_dir)
